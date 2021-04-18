@@ -43,6 +43,8 @@
             this.btnMaplistRefresh = new System.Windows.Forms.Button();
             this.btnRemoveMap = new System.Windows.Forms.Button();
             this.btnAddMap = new System.Windows.Forms.Button();
+            this.btnSaveMapList = new System.Windows.Forms.Button();
+            this.btnLoadMapList = new System.Windows.Forms.Button();
             this.picMaplistAppendMap = new System.Windows.Forms.PictureBox();
             this.lsvMaplistPool = new PRoCon.Controls.ControlsEx.ListViewNF();
             this.colPoolGameType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -257,6 +259,8 @@
             this.pnlMaplistAddMap.Controls.Add(this.btnMaplistRefresh);
             this.pnlMaplistAddMap.Controls.Add(this.btnRemoveMap);
             this.pnlMaplistAddMap.Controls.Add(this.btnAddMap);
+            this.pnlMaplistAddMap.Controls.Add(this.btnLoadMapList);
+            this.pnlMaplistAddMap.Controls.Add(this.btnSaveMapList);
             this.pnlMaplistAddMap.Controls.Add(this.picMaplistAppendMap);
             this.pnlMaplistAddMap.Controls.Add(this.lblMaplistRounds);
             this.pnlMaplistAddMap.Controls.Add(this.numRoundsSelect);
@@ -314,6 +318,34 @@
             this.btnAddMap.TabIndex = 113;
             this.btnAddMap.UseVisualStyleBackColor = true;
             this.btnAddMap.Click += new System.EventHandler(this.btnAddMap_Click);
+            // 
+            // btnSaveMapList
+            //                    
+            this.btnSaveMapList.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.btnSaveMapList.Enabled = true;
+            this.btnSaveMapList.FlatAppearance.BorderSize = 1;
+            this.btnSaveMapList.FlatStyle = System.Windows.Forms.FlatStyle.Standard;
+            this.btnSaveMapList.Location = new System.Drawing.Point(4, 500);
+            this.btnSaveMapList.Name = "btnSaveMapList";
+            this.btnSaveMapList.Size = new System.Drawing.Size(81, 27);
+            this.btnSaveMapList.TabIndex = 200;
+            this.btnSaveMapList.UseVisualStyleBackColor = true;
+            this.btnSaveMapList.Text = "Save Maps";
+            this.btnSaveMapList.Click += new System.EventHandler(this.btnSaveMapList_Click);
+            // 
+            // btnLoadMapList
+            //             
+            this.btnLoadMapList.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.btnLoadMapList.Enabled = true;
+            this.btnLoadMapList.FlatAppearance.BorderSize = 1;
+            this.btnLoadMapList.FlatStyle = System.Windows.Forms.FlatStyle.Standard;
+            this.btnLoadMapList.Location = new System.Drawing.Point(4, 540);
+            this.btnLoadMapList.Name = "btnLoadMapList";
+            this.btnLoadMapList.Size = new System.Drawing.Size(81, 27);
+            this.btnLoadMapList.TabIndex = 200;
+            this.btnLoadMapList.UseVisualStyleBackColor = true;
+            this.btnLoadMapList.Text = "Load Maps";
+            this.btnLoadMapList.Click += new System.EventHandler(this.btnLoadMapList_Click);
             // 
             // picMaplistAppendMap
             // 
@@ -495,5 +527,7 @@
         private System.Windows.Forms.Button btnMaplistRefresh;
         private System.Windows.Forms.ToolTip toolTipMaplistRefresh;
         private System.Windows.Forms.Button btnMaplistClear;
+        private System.Windows.Forms.Button btnSaveMapList;
+        private System.Windows.Forms.Button btnLoadMapList;
     }
 }

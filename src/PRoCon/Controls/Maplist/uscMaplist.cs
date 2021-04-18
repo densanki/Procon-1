@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
 using System.Windows.Forms;
 
 namespace PRoCon.Controls.Maplist
@@ -148,7 +149,7 @@ namespace PRoCon.Controls.Maplist
                 this.RefreshLocalMaplist();
             });
         }
-
+            
         private void RefreshLocalMaplist()
         {
 
@@ -812,7 +813,6 @@ namespace PRoCon.Controls.Maplist
         {
             if (this.m_client != null && this.m_client.Game != null && this.lsvMaplistPool.SelectedItems.Count > 0)
             {
-
                 if (this.lsvMaplistPool.SelectedItems[0].Tag != null)
                 {
                     this.WaitForSettingResponse("local.maplist.append");
@@ -838,6 +838,143 @@ namespace PRoCon.Controls.Maplist
             }
         }
 
+        private async void  btnSaveMapList_Click(object sender, EventArgs e) {
+            
+            string Pfad = string.Empty;
+
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "txt files (*.txt)|*.txt";
+            if(saveFileDialog.ShowDialog() == DialogResult.OK)
+                Pfad = saveFileDialog.FileName;                      
+            
+            using StreamWriter file = new StreamWriter(Pfad);
+            
+            await file.WriteLineAsync(
+                "#;" + 
+                "Gamemode;" +
+                "Map Name;" +
+                "File Name;" + 
+                "Rounds;"
+            );
+            
+            for (int i = 0; i < this.lsvMaplist.Items.Count; i++) {
+                await file.WriteLineAsync(
+                    this.lsvMaplist.Items[i].SubItems[0].Text + ";" +
+                    this.lsvMaplist.Items[i].SubItems[1].Text + ";" +
+                    this.lsvMaplist.Items[i].SubItems[2].Text + ";" +
+                    this.lsvMaplist.Items[i].SubItems[3].Text + ";" + 
+                    this.lsvMaplist.Items[i].SubItems[4].Text + ";"
+                );
+            }
+            file.Flush();
+            file.Close();
+        }
+
+        private void btnLoadMapList_Click(object sender, EventArgs e) {
+            
+            string Pfad = string.Empty;
+
+            OpenFileDialog openFileDialog1 = new OpenFileDialog();
+            openFileDialog1.Filter = "txt files (*.txt)|*.txt";
+            if(openFileDialog1.ShowDialog() == DialogResult.OK)
+                Pfad = openFileDialog1.FileName;                        
+            
+            if (this.m_client != null && this.m_client.Game != null) {
+            
+                this.m_client.Game.SendMapListClearPacket();
+                
+                this.lsvMaplist.BeginUpdate();
+                this.lsvMaplist.Items.Clear();
+                
+                this.WaitForSettingResponse("local.maplist.append");
+                this.m_blSettingAppendingSingleMap = true;
+                
+                using StreamReader file = new StreamReader(Pfad);
+                String line;
+                
+                file.ReadLine();
+                while((line = file.ReadLine()) != null)  
+                {  
+                    string[] subs = line.Split(';');
+                    
+                    ListViewItem lviMap = new ListViewItem();
+
+                    lviMap.Tag = subs[2];
+                    lviMap.Name = subs[3];
+                    lviMap.Text = subs[0];
+                    
+                    lviMap.SubItems.Add(subs[1]);
+                    lviMap.SubItems.Add(subs[2]);
+                    lviMap.SubItems.Add(subs[3]);
+                    
+                    ListViewItem.ListViewSubItem lviRounds = new ListViewItem.ListViewSubItem();
+                    lviRounds.Name = "rounds";
+                    lviRounds.Text = subs[4].ToString();
+                    lviRounds.Tag = subs[4];
+                    lviMap.SubItems.Add(lviRounds);                
+                    
+                    this.lsvMaplist.Items.Add(lviMap);
+                    
+                    switch (subs[1])
+                    {
+                        case "Conquest Large":
+                            subs[1] = "ConquestLarge0";
+                            break;
+                        case "Conquest Small":
+                            subs[1] = "ConquestSmall0"; 
+                            break;
+                        case "Domination":
+                            subs[1] = "Domination0"; 
+                            break;
+                        case "Elimination":
+                            subs[1] = "Elimination0"; 
+                            break;
+                        case "Rush":
+                            subs[1] = "RushLarge0"; 
+                            break;  
+                        case "Squad Deathmatch":
+                            subs[1] = "SquadDeathMatch0"; 
+                            break;
+                        case "Team Deathmatch":
+                            subs[1] = "TeamDeathMatch0"; 
+                            break;        
+                        case "Air Superiority":
+                            subs[1] = "AirSuperiority0"; 
+                            break;     
+                        case "Gun Master":
+                            subs[1] = "GunMaster0"; 
+                            break;
+                        case "Chain Link":
+                            subs[1] = "ChainLink0"; 
+                            break; 
+                        case "CTF":
+                            subs[1] = "Capturetheflag0"; 
+                            break;      
+                        case "Carrier Assault":
+                            subs[1] = "CarrierAssaultLarge0"; 
+                            break;                           
+                    }                    
+                    
+                    //this.m_client.GetGamemodeList()
+                    
+                    this.m_client.Game.SendMapListAppendPacket(new MaplistEntry(subs[1], subs[3], Int32.Parse(subs[4])));
+
+                    this.m_client.Game.SendMapListSavePacket();
+                } 
+                
+                file.Close();
+                
+                for (int i = 0; i < this.lsvMaplist.Columns.Count; i++)
+                {
+                    this.lsvMaplist.Columns[i].Width = -2;
+                }
+
+                this.Game_MapListDoUpdateMarkers(m_iCurMapIndex, m_iNextMapIndex);
+                
+                this.lsvMaplist.EndUpdate();
+            }
+        }
+        
         #endregion
 
         private void lnkMaplistChangePlaylist_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
