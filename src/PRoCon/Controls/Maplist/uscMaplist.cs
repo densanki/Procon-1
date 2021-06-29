@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace PRoCon.Controls.Maplist {
@@ -713,16 +714,31 @@ namespace PRoCon.Controls.Maplist {
             string Pfad = string.Empty;
 
             SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.FileName = string.Format("{0:yyyy_MM_dd_HH_mm_ss}_Maplist.txt", DateTime.Now);
             saveFileDialog.Filter = "txt files (*.txt)|*.txt";
             if (saveFileDialog.ShowDialog() == DialogResult.OK) {
                 Pfad = saveFileDialog.FileName;
 
                 using StreamWriter file = new StreamWriter(Pfad);
 
-                await file.WriteLineAsync("#;" + "Gamemode;" + "Map Name;" + "File Name;" + "Rounds;");
+                await file.WriteLineAsync("#;GameMode;GameModeReadable;MapName;MapFileName;Rounds;");
 
                 for (int i = 0; i < this.lsvMaplist.Items.Count; i++) {
-                    await file.WriteLineAsync(this.lsvMaplist.Items[i].SubItems[0].Text + ";" + this.lsvMaplist.Items[i].SubItems[1].Text + ";" + this.lsvMaplist.Items[i].SubItems[2].Text + ";" + this.lsvMaplist.Items[i].SubItems[3].Text + ";" + this.lsvMaplist.Items[i].SubItems[4].Text + ";");
+                    MaplistEntry maplistEntry = (MaplistEntry) this.lsvMaplist.Items[i].Tag;
+                    String line = this.lsvMaplist.Items[i].SubItems[0].Text + ";" + 
+                                  maplistEntry.Gamemode + ";" + 
+                                  this.lsvMaplist.Items[i].SubItems[1].Text + ";" + 
+                                  this.lsvMaplist.Items[i].SubItems[2].Text + ";" + 
+                                  this.lsvMaplist.Items[i].SubItems[3].Text + ";" + 
+                                  this.lsvMaplist.Items[i].SubItems[4].Text + ";"
+                                  ;
+                                  
+                    /*String line = this.lsvMaplist.Items[i].SubItems[3].Text + " " + 
+                                  maplistEntry.Gamemode + " " +
+                                  this.lsvMaplist.Items[i].SubItems[4].Text
+                                  ;*/
+                                                      
+                    await file.WriteLineAsync(line);
                 }
 
                 file.Flush();
@@ -739,40 +755,66 @@ namespace PRoCon.Controls.Maplist {
                 Pfad = openFileDialog1.FileName;
 
                 if (this.m_client != null && this.m_client.Game != null) {
+                    using StreamReader file = new StreamReader(Pfad);
+                    String line;
+
+                    line = file.ReadLine();
+
+                    if (!line.Equals("#;GameMode;GameModeReadable;MapName;MapFileName;Rounds;")) {
+                        MessageBox.Show("Import Format mismatch. Abort Import.");
+                        return;
+                    }
+                    
                     this.m_client.Game.SendMapListClearPacket();
 
                     this.lsvMaplist.BeginUpdate();
                     this.lsvMaplist.Items.Clear();
 
                     this.WaitForSettingResponse("local.maplist.append");
-                    this.m_blSettingAppendingSingleMap = true;
-
-                    using StreamReader file = new StreamReader(Pfad);
-                    String line;
-
-                    file.ReadLine();
+                    this.m_blSettingAppendingSingleMap = true;                    
+                    
                     while ((line = file.ReadLine()) != null) {
                         string[] subs = line.Split(';');
 
+                        String index = subs[0];
+                        String gameMode = subs[1];
+                        String gameModeReadable = subs[2];
+                        String mapName = subs[3];
+                        String mapFileName = subs[4];
+                        int rounds = Int32.Parse(subs[5]);
+                        
                         ListViewItem lviMap = new ListViewItem();
+                        lviMap.Name = mapFileName;
+                        lviMap.Text = index;
+                        //string gameMode, string strMapFileName, int iRounds, int index
+                        MaplistEntry maplistEntry = new MaplistEntry(gameMode, mapFileName, rounds, 0);
+                        lviMap.Tag = maplistEntry;
 
-                        lviMap.Tag = subs[2];
-                        lviMap.Name = subs[3];
-                        lviMap.Text = subs[0];
+                        ListViewItem.ListViewSubItem lviIndex = new ListViewItem.ListViewSubItem();
+                        lviIndex.Text = index;
+                        lviMap.SubItems.Add(lviIndex);
 
-                        lviMap.SubItems.Add(subs[1]);
-                        lviMap.SubItems.Add(subs[2]);
-                        lviMap.SubItems.Add(subs[3]);
+                        ListViewItem.ListViewSubItem lviGameModeReadable = new ListViewItem.ListViewSubItem();
+                        lviGameModeReadable.Text = gameModeReadable;
+                        lviMap.SubItems.Add(lviGameModeReadable);
+                        
+                        ListViewItem.ListViewSubItem lviMapName = new ListViewItem.ListViewSubItem();
+                        lviMapName.Text = mapName;
+                        lviMap.SubItems.Add(lviMapName);
 
+                        ListViewItem.ListViewSubItem lviMapFileName = new ListViewItem.ListViewSubItem();
+                        lviMapFileName.Text = mapFileName;
+                        lviMap.SubItems.Add(lviMapFileName);                            
+                        
                         ListViewItem.ListViewSubItem lviRounds = new ListViewItem.ListViewSubItem();
                         lviRounds.Name = "rounds";
-                        lviRounds.Text = subs[4].ToString();
-                        lviRounds.Tag = subs[4];
+                        lviRounds.Text = rounds.ToString();
+                        lviRounds.Tag = rounds;
                         lviMap.SubItems.Add(lviRounds);
 
                         this.lsvMaplist.Items.Add(lviMap);
 
-                        switch (subs[1]) {
+                        /*switch (subs[1]) {
                             case "Conquest Large":
                                 subs[1] = "ConquestLarge0";
                                 break;
@@ -809,13 +851,16 @@ namespace PRoCon.Controls.Maplist {
                             case "Carrier Assault":
                                 subs[1] = "CarrierAssaultLarge0";
                                 break;
-                        }
+                        }*/
 
                         //this.m_client.GetGamemodeList()
 
-                        this.m_client.Game.SendMapListAppendPacket(new MaplistEntry(subs[1], subs[3], Int32.Parse(subs[4])));
-
+                        this.m_client.Game.SendMapListAppendPacket(new MaplistEntry(gameMode, mapFileName, rounds));
+                        
                         this.m_client.Game.SendMapListSavePacket();
+                        
+                        Thread.Sleep(100);
+                        
                     }
 
                     file.Close();
@@ -827,6 +872,8 @@ namespace PRoCon.Controls.Maplist {
                     this.Game_MapListDoUpdateMarkers(m_iCurMapIndex, m_iNextMapIndex);
 
                     this.lsvMaplist.EndUpdate();
+                    //this.lsvMaplist.Refresh();
+                    //this.lsvMaplist.Update();
                 }
             }
         }
@@ -848,7 +895,7 @@ namespace PRoCon.Controls.Maplist {
         private void btnMaplistRefresh_Click(object sender, EventArgs e) {
             if (this.m_client != null && this.m_client.Game != null) {
                 this.m_client.Game.SendMapListLoadPacket();
-                //this.m_client.Game.SendMapListListRoundsPacket();
+                this.m_client.Game.SendMapListListRoundsPacket();
                 this.OnSettingResponse("local.maplist.append", true);
             }
         }
