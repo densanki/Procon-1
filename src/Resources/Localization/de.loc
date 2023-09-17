@@ -1301,6 +1301,8 @@ frmOptions.tabBasics.cboBasicsShowWindow.TaskTray=in die Taskleiste und Tray
 frmOptions.tabBasics.cboBasicsShowWindow.Task=nur in die Taskleiste
 frmOptions.tabBasics.chkBasicsCloseToTray=Auf Tray schließen
 frmOptions.tabBasics.chkBasicsMinimizeToTray=Auf Tray minimieren
+frmOptions.tabBasics.rssFeedOptCheckbox=RSS-Feed anzeigen
+frmOptions.tabBasics.localGeoIPCheckbox=Verwenden Sie lokale GeoIP-Daten
 
 
 frmOptions.tabPlugins=Plugins
@@ -1737,6 +1739,7 @@ uscEvents.gpbCaptures.chkEventsEnableScrolling=automatisches Scrollen aktivieren
 uscEvents.lsvEvents.PlayerJoin={0} betrat den Server
 uscEvents.lsvEvents.PlayerLeave={0} verließ den Server
 uscEvents.lsvEvents.PlayerDisconnected={0} wurde vom Server getrennt (Grund: {1})
+uscEvents.lsvEvents.PlayerSpawned={0} ist gespawned
 uscEvents.lsvEvents.PlayerKilled={0} killed {1} {2}
 uscEvents.lsvEvents.PlayerKilled.HeadShot=-Kopfschuss-
 uscEvents.lsvEvents.PlayerKicked={0} wurde vom Server geworfen
