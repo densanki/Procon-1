@@ -45,5 +45,5 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: my-artifact
+        name: procon-maps-mod
         path: D:\a\Procon-1\Procon-1\builds\Release\
